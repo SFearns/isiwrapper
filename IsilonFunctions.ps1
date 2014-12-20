@@ -280,7 +280,10 @@ function Get-IsilonNodeTime {
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName)
-    $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s date").split("`r")).Split("`n")
+    "Node,DateTime" | Set-Content $SFTempFile
+    $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s date").split("`r")).Split("`n") | Convert-Delimiter ": " "," | Add-Content $SFTempFile
+    $Result = Import-Csv $SFTempFile
+    Remove-Item -Path $SFTempFile
     Return $Result
 }
 
