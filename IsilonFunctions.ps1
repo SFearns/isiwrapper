@@ -45,6 +45,8 @@ function Get-IsilonBatteryStatus {
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
     $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s isi batterystatus").split("`r")).Split("`n")).Replace(' ','')
+    if ($Temp-like"*Batterystatusnotsupportedonthishardware*") {$Temp=$null}
+
     $Result=@()
     for ($i=0;$i-lt$Temp.count;$i++){
         $Temp2=$Temp[$i].Split(':')
@@ -105,6 +107,7 @@ function Get-IsilonFirmwareStatus {
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
     $Temp = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi firmware status").split("`r")).Split("`n")
+    if ($Temp[$Temp.count-1].Contains('NO DEVICES FOUND')) {$Temp=$null}
     $Result=@()
     for ($i=2;$i-lt$Temp.count;$i++){
         $Subset1=($Temp[$i].Substring(3,12)).Replace(' ','')
