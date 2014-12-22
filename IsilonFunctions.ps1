@@ -9,7 +9,7 @@ if (Test-Path ($SFTempFile)){Remove-Item $SFTempFile}
 #   isi_hw_status
 #
 
-Write-Host "`n`tIsilon Module v1.0"
+Write-Host "`n`tIsilon Module v1.0.1"
 Write-Host ""
 Write-Host "Make a connection to an Isilon Cluster with: " -NoNewline
 Write-Host "Connect-IsilonCluster" -ForegroundColor Yellow
@@ -45,9 +45,11 @@ function Get-IsilonBatteryStatus {
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
     $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s isi batterystatus").split("`r")).Split("`n")).Replace(' ','')
-    if ($Temp-like"*Batterystatusnotsupportedonthishardware*") {$Temp=$null}
+    if ($Temp-like"*Batterystatusnotsupportedonthishardware*") {Write-Verbose "Battery Status not supported on this hardware"; $Temp=$null}
 
     $Result=@()
+    Write-Verbose "Gathering information on the battery status for each node"
+
     for ($i=0;$i-lt$Temp.count;$i++){
         $Temp2=$Temp[$i].Split(':')
         $Temp2[1] = $Temp2[1].replace('battery','')
@@ -65,9 +67,10 @@ function Get-IsilonHardwareStatus {
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
     $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s isi_hw_status").split("`r")).Split("`n")).Replace(' ','')
     $Result = $Temp
-    # Magic goes here to extra all the information and create objects
+    # Magic goes here to extract all the information and create objects
 <#
     $Result=@()
     for ($i=0;$i-lt$Temp.count;$i++){
@@ -87,6 +90,7 @@ function Get-IsilonDiskUsage {
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "Collecting disk usage information"
     ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "df -i").split("`r")).Split("`n").replace('Mounted on','MountedOn') | Convert-Delimiter " +" "," | Set-Content $SFTempFile
     $Result = Import-Csv $SFTempFile
     Remove-Item -Path $SFTempFile
@@ -261,6 +265,7 @@ function Get-IsilonListSnapshots {
     [CmdletBinding()]
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
           [Parameter(Mandatory=$false)] [boolean]$Detailed=$true)
+    Write-Verbose "This command can timeout and return a partial 'json' object"
     if ($Detailed){$a=" -v"}else{$a=$null}
     $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi snapshot snapshots list --format json$a")
     # Command can timeout
@@ -396,6 +401,7 @@ function New-IsilonQuota {
     if ($AdviseThreshold) {$Command += " --advisory-threshold $AdviseThreshold"}
     if ($SoftThreshold) {$Command += " --soft-threshold $SoftThreshold"}
     if ($SoftGrace) {$Command += " --soft-grace $SoftGrace"}
+    Write-Verbose "SSH command is: $Command"
     $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command $Command).split("`r")).Split("`n")
     Return $Result
 }
@@ -428,6 +434,30 @@ function Set-IsilonSyncTimeWithDomain {
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
           [Parameter(Mandatory=$true)]  [string]$Domain)
     $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s isi_classic auth ads time --sync --domain=$Domain --force").split("`r")).Split("`n")
+    Return $Result
+}
+
+function Set-IsilonQuota {
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
+          [Parameter(Mandatory=$true)]  [string]$Path,
+          [Parameter(Mandatory=$true)]  [string]$HardThreshold,
+          [Parameter(Mandatory=$false)] [string]$AdviseThreshold,
+          [Parameter(Mandatory=$false)] [string]$SoftThreshold,
+          [Parameter(Mandatory=$false)] [string]$SoftGrace,
+          [Parameter(Mandatory=$false)] [boolean]$Container=$true,
+          [Parameter(Mandatory=$false)] [boolean]$Snapshots=$false,
+          [Parameter(Mandatory=$false)] [boolean]$Overhead=$false,
+          [Parameter(Mandatory=$false)] [boolean]$Enforced=$false,
+          [Parameter(Mandatory=$false)] [boolean]$Detailed=$false)
+    if ($Detailed){$a=" -v"}else{$a=$null}
+    $Command = "isi quota quotas modify `'$Path`' directory$a --hard-threshold $HardThreshold --container $Container --include-snapshots $Snapshots --thresholds-include-overhead $Overhead --enforced $Enforced"
+    if ($AdviseThreshold) {$Command += " --advisory-threshold $AdviseThreshold"}
+    if ($SoftThreshold) {$Command += " --soft-threshold $SoftThreshold"}
+    if ($SoftGrace) {$Command += " --soft-grace $SoftGrace"}
+    Write-Verbose "SSH command is: $Command"
+    $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command $Command).split("`r")).Split("`n")
     Return $Result
 }
 
