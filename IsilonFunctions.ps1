@@ -463,6 +463,7 @@ function Set-IsilonQuota {
           [Parameter(Mandatory=$false)] [boolean]$Overhead,
           [Parameter(Mandatory=$false)] [boolean]$Enforced,
           [Parameter(Mandatory=$false)] [boolean]$Detailed)
+    if ($SoftThreshold -and !$SoftGrace) {Write-Host 'ERROR: SoftThreshold requires -SoftGrace to be set' -BackgroundColor Black -ForegroundColor Red; return}
     if ($Detailed){$a=" -v"}else{$a=$null}
     $Command = "isi quota quotas modify `'$Path`' directory$a"
     if ($Container) {Write-Verbose "Adding Container"; $Command += " --container $Container"}
