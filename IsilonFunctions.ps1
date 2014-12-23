@@ -454,20 +454,25 @@ function Set-IsilonQuota {
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
           [Parameter(Mandatory=$true)]  [string]$Path,
-          [Parameter(Mandatory=$true)]  [string]$HardThreshold,
+          [Parameter(Mandatory=$false)] [string]$HardThreshold,
           [Parameter(Mandatory=$false)] [string]$AdviseThreshold,
           [Parameter(Mandatory=$false)] [string]$SoftThreshold,
           [Parameter(Mandatory=$false)] [string]$SoftGrace,
-          [Parameter(Mandatory=$false)] [boolean]$Container=$true,
-          [Parameter(Mandatory=$false)] [boolean]$Snapshots=$false,
-          [Parameter(Mandatory=$false)] [boolean]$Overhead=$false,
-          [Parameter(Mandatory=$false)] [boolean]$Enforced=$false,
-          [Parameter(Mandatory=$false)] [boolean]$Detailed=$false)
+          [Parameter(Mandatory=$false)] [boolean]$Container,
+          [Parameter(Mandatory=$false)] [boolean]$Snapshots,
+          [Parameter(Mandatory=$false)] [boolean]$Overhead,
+          [Parameter(Mandatory=$false)] [boolean]$Enforced,
+          [Parameter(Mandatory=$false)] [boolean]$Detailed)
     if ($Detailed){$a=" -v"}else{$a=$null}
-    $Command = "isi quota quotas modify `'$Path`' directory$a --hard-threshold $HardThreshold --container $Container --include-snapshots $Snapshots --thresholds-include-overhead $Overhead --enforced $Enforced"
-    if ($AdviseThreshold) {$Command += " --advisory-threshold $AdviseThreshold"}
-    if ($SoftThreshold) {$Command += " --soft-threshold $SoftThreshold"}
-    if ($SoftGrace) {$Command += " --soft-grace $SoftGrace"}
+    $Command = "isi quota quotas modify `'$Path`' directory$a"
+    if ($Container) {Write-Verbose "Adding Container"; $Command += " --container $Container"}
+    if ($Snapshots) {Write-Verbose "Adding Snapshots"; $Command += " --include-snapshots $Snapshots"}
+    if ($Overhead) {Write-Verbose "Adding Overhead"; $Command += " --thresholds-include-overhead $Overhead"}
+    if ($Enforced) {Write-Verbose "Adding Enforced"; $Command += " --enforced $Enforced"}
+    if ($HardThreshold) {Write-Verbose "Adding HardThreshold"; $Command += " --hard-threshold $HardThreshold"}
+    if ($AdviseThreshold) {Write-Verbose "Adding AdviseThreshold"; $Command += " --advisory-threshold $AdviseThreshold"}
+    if ($SoftThreshold) {Write-Verbose "Adding SoftThreshold"; $Command += " --soft-threshold $SoftThreshold"}
+    if ($SoftGrace) {Write-Verbose "Adding SoftGrace"; $Command += " --soft-grace $SoftGrace"}
     Write-Verbose "SSH command is: $Command"
     $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command $Command).split("`r")).Split("`n")
     Return $Result
