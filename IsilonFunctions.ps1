@@ -239,6 +239,18 @@ function Get-IsilonListSMBShares {
     Return $Result
 }
 
+function Get-IsilonListSyncJobs {
+    [CmdletBinding()]
+    Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
+          [Parameter(Mandatory=$false)] [boolean]$Detailed=$true)
+    if ($Detailed){$a=" -v"}else{$a=$null}
+    $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi sync jobs list --format json$a")
+    # Can timeout so attempt a 2nd time if no results
+    if (!$t) {$t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi sync jobs list --format json$a")}
+    if ($t){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    Return ($Result)
+}
+
 function Get-IsilonListSyncPolicies {
     [CmdletBinding()]
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
