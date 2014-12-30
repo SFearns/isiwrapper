@@ -163,7 +163,8 @@ function Get-IsilonListEvents {
     [CmdletBinding()]
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName)
     "id,start_time,end_time,severity,lnn,message" | Out-File -FilePath $SFTempFile -Force
-    [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi events list --csv").split("`r") | Out-File -FilePath $SFTempFile -Append -NoClobber
+    # The repeated " `| sed 's/,/./ 6'" allows for 20 commas and everything after the 5th will be replaced with a dot
+    [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi events list -w --csv `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6'").split("`r") | Out-File -FilePath $SFTempFile -Append -NoClobber
     $Result = Import-Csv $SFTempFile
     Remove-Item -Path $SFTempFile
     Return $Result
