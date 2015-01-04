@@ -1,5 +1,7 @@
 ﻿Import-Module SSH-Sessions
-$SFTempFile = "$env:temp\sftempfile.csv"
+# Made the temporary file more unique based on the datetime the script is executed
+$Today=Get-Date
+$SFTempFile = "$env:temp\sftempfile-{0:D4}{1:D2}{2:D2}-{3:D2}{4:D2}.csv" -F $Today.Year,$Today.Month,$Today.Day,$Today.Hour,$Today.Minute
 if (Test-Path ($SFTempFile)){Remove-Item $SFTempFile}
 
 # Things to include:
@@ -154,8 +156,13 @@ function Get-IsilonListCurrentJobs {
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
           [Parameter(Mandatory=$false)] [boolean]$Detailed=$true)
     if ($Detailed){$a=" -v"}else{$a=$null}
-    $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job jobs list --format json$a")
-    if ($t){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    $Counter=0
+    do {
+        $Counter++
+        $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job jobs list --format json$a")
+        # Can timeout so attempt a 2nd time if incorrect result
+    } while (($t[0]-ne'[') -and ($Counter-lt2))
+    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
     Return $Result
 }
 
@@ -175,8 +182,13 @@ function Get-IsilonListJobs {
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
           [Parameter(Mandatory=$false)] [boolean]$Detailed=$true)
     if ($Detailed){$a=" -v"}else{$a=$null}
-    $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job jobs list --format json$a")
-    if ($t){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    $Counter=0
+    do {
+        $Counter++
+        $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job jobs list --format json$a")
+        # Can timeout so attempt a 2nd time if incorrect result
+    } while (($t[0]-ne'[') -and ($Counter-lt2))
+    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
     Return $Result
 }
 
@@ -185,8 +197,13 @@ function Get-IsilonListJobEvents {
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
           [Parameter(Mandatory=$false)] [boolean]$Detailed=$true)
     if ($Detailed){$a=" -v"}else{$a=$null}
-    $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job events list --format json$a")
-    if ($t){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    $Counter=0
+    do {
+        $Counter++
+        $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job events list --format json$a")
+        # Can timeout so attempt a 2nd time if incorrect result
+    } while (($t[0]-ne'[') -and ($Counter-lt2))
+    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
     Return $Result
 }
 
@@ -195,16 +212,26 @@ function Get-IsilonListJobPolicies {
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
           [Parameter(Mandatory=$false)] [boolean]$Detailed=$true)
     if ($Detailed){$a=" -v"}else{$a=$null}
-    $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job policies list --format json$a")
-    if ($t){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    $Counter=0
+    do {
+        $Counter++
+        $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job policies list --format json$a")
+        # Can timeout so attempt a 2nd time if incorrect result
+    } while (($t[0]-ne'[') -and ($Counter-lt2))
+    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
     Return $Result
 }
 
 function Get-IsilonListJobReports {
     [CmdletBinding()]
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName)
-    $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job reports list --format json")
-    if ($t){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    $Counter=0
+    do {
+        $Counter++
+        $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job reports list --format json")
+        # Can timeout so attempt a 2nd time if incorrect result
+    } while (($t[0]-ne'[') -and ($Counter-lt2))
+    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
     Return $Result
 }
 
@@ -215,8 +242,13 @@ function Get-IsilonListJobTypes {
           [Parameter(Mandatory=$false)] [boolean]$ShowHidden=$false)
     if ($Detailed){$a=" -v"}else{$a=$null}
     if ($ShowHidden){$b=" --all"}else{$b=$null}
-    $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job types list --format json$a$b")
-    if ($t){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    $Counter=0
+    do {
+        $Counter++
+        $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job types list --format json$a$b")
+        # Can timeout so attempt a 2nd time if incorrect result
+    } while (($t[0]-ne'[') -and ($Counter-lt2))
+    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
     Return $Result
 }
 
@@ -225,8 +257,13 @@ function Get-IsilonListNFSShares {
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
           [Parameter(Mandatory=$false)] [boolean]$Detailed=$true)
     if ($Detailed){$a=" -v"}else{$a=$null}
-    $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi nfs exports list --format json$a")
-    if ($t){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    $Counter=0
+    do {
+        $Counter++
+        $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi nfs exports list --format json$a")
+        # Can timeout so attempt a 2nd time if incorrect result
+    } while (($t[0]-ne'[') -and ($Counter-lt2))
+    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
     Return $Result
 }
 
@@ -235,8 +272,13 @@ function Get-IsilonListSMBShares {
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
           [Parameter(Mandatory=$false)] [boolean]$Detailed=$true)
     if ($Detailed){$a=" -v"}else{$a=$null}
-    $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi smb share list --format json$a")
-    if ($t){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    $Counter=0
+    do {
+        $Counter++
+        $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi smb share list --format json$a")
+        # Can timeout so attempt a 2nd time if incorrect result
+    } while (($t[0]-ne'[') -and ($Counter-lt2))
+    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
     Return $Result
 }
 
@@ -245,10 +287,13 @@ function Get-IsilonListSyncJobs {
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
           [Parameter(Mandatory=$false)] [boolean]$Detailed=$true)
     if ($Detailed){$a=" -v"}else{$a=$null}
-    $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi sync jobs list --format json$a")
-    # Can timeout so attempt a 2nd time if no results
-    if (!$t) {$t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi sync jobs list --format json$a")}
-    if ($t){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    $Counter=0
+    do {
+        $Counter++
+        $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi sync jobs list --format json$a")
+        # Can timeout so attempt a 2nd time if incorrect result
+    } while (($t[0]-ne'[') -and ($Counter-lt2))
+    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
     Return ($Result)
 }
 
@@ -257,10 +302,13 @@ function Get-IsilonListSyncPolicies {
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
           [Parameter(Mandatory=$false)] [boolean]$Detailed=$true)
     if ($Detailed){$a=" -v"}else{$a=$null}
-    $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi sync policies list --sort name --format json$a")
-    # Can timeout so attempt a 2nd time if no results
-    if (!$t) {$t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi sync policies list --sort name --format json$a")}
-    if ($t){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    $Counter=0
+    do {
+        $Counter++
+        $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi sync policies list --sort name --format json$a")
+        # Can timeout so attempt a 2nd time if incorrect result
+    } while (($t[0]-ne'[') -and ($Counter-lt2))
+    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
     Return ($Result)
 }
 
@@ -269,8 +317,13 @@ function Get-IsilonListSyncReports {
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
           [Parameter(Mandatory=$false)] [boolean]$Detailed=$true)
     if ($Detailed){$a=" -v"}else{$a=$null}
-    $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi sync reports list --sort start_time --descending --reports-per-policy 1 --format json$a")
-    if ($t){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    $Counter=0
+    do {
+        $Counter++
+        $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi sync reports list --sort start_time --descending --reports-per-policy 1 --format json$a")
+        # Can timeout so attempt a 2nd time if incorrect result
+    } while (($t[0]-ne'[') -and ($Counter-lt2))
+    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
     Return $Result
 }
 
@@ -280,10 +333,13 @@ function Get-IsilonListSnapshots {
           [Parameter(Mandatory=$false)] [boolean]$Detailed=$true)
     Write-Verbose "This command can timeout and return a partial 'json' object"
     if ($Detailed){$a=" -v"}else{$a=$null}
-    $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi snapshot snapshots list --format json$a")
-    # Command can timeout
-    if (!$t) {$t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi snapshot snapshots list --format json$a")}
-    if ($t){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    $Counter=0
+    do {
+        $Counter++
+        $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi snapshot snapshots list --format json$a")
+        # Can timeout so attempt a 2nd time if incorrect result
+    } while (($t[0]-ne'[') -and ($Counter-lt2))
+    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
     Return $Result
 }
 
@@ -292,8 +348,13 @@ function Get-IsilonListQuotas {
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
           [Parameter(Mandatory=$false)] [boolean]$Detailed=$true)
     if ($Detailed){$a=" -v"}else{$a=$null}
-    $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi quota quotas list --format json$a")
-    if ($t){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    $Counter=0
+    do {
+        $Counter++
+        $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi quota quotas list --format json$a")
+        # Can timeout so attempt a 2nd time if incorrect result
+    } while (($t[0]-ne'[') -and ($Counter-lt2))
+    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
     Return $Result
 }
 
