@@ -11,7 +11,7 @@ if (Test-Path ($SFTempFile)){Remove-Item $SFTempFile}
 #   isi_hw_status
 #
 
-Write-Host "`n`tIsilon Module v1.0.1"
+Write-Host "`n`tIsilon Module v1.0.2"
 Write-Host ""
 Write-Host "Make a connection to an Isilon Cluster with: " -NoNewline
 Write-Host "Connect-IsilonCluster" -ForegroundColor Yellow
@@ -23,6 +23,8 @@ Write-Host "Get-IsilonCommands" -ForegroundColor Yellow
 function Get-IsilonCommands {
     [CmdletBinding()]
     Param ()
+    Write-Verbose 'This command executed the following:'
+    Write-Verbose 'Get-Command *-Isilon* -CommandType Function | Sort-Object Name'
     Get-Command *-Isilon* -CommandType Function | Sort-Object Name
 }
 
@@ -32,6 +34,7 @@ function Connect-IsilonCluster {
     Param([Parameter(Mandatory=$true)] [string]$ClusterName,
           [Parameter(Mandatory=$true)] [string]$Username,
           [Parameter(Mandatory=$true)] [string]$Password)
+    Write-Verbose 'Attempting to establish an SSH session'
     $Result = ([string](New-SshSession -ComputerName $ClusterName -Username $UserName -Password $Password).split("`r")).Split("`n")
     Return $Result
 }
@@ -46,11 +49,12 @@ function Get-IsilonBatteryStatus {
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose 'Gather information on the battery status'
     $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s isi batterystatus").split("`r")).Split("`n")).Replace(' ','')
     if ($Temp-like"*Batterystatusnotsupportedonthishardware*") {Write-Verbose "Battery Status not supported on this hardware"; $Temp=$null}
 
     $Result=@()
-    Write-Verbose "Gathering information on the battery status for each node"
+    Write-Verbose 'Create the array of objects'
 
     for ($i=0;$i-lt$Temp.count;$i++){
         $Temp2=$Temp[$i].Split(':')
@@ -104,6 +108,7 @@ function Get-IsilonDirectoryQuota {
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName,
           [Parameter(Mandatory=$true)] [string]$Path)
+    Write-Verbose 'Gather information on Directory Quotas as an array of objects'
     $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi quota quotas view `'$Path`' directory").split("`r")).Split("`n")
     Return $Result
 }
@@ -112,8 +117,10 @@ function Get-IsilonFirmwareStatus {
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose 'Gather information on the Firmware Status'
     $Temp = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi firmware status").split("`r")).Split("`n")
-    if ($Temp[$Temp.count-1].Contains('NO DEVICES FOUND')) {$Temp=$null}
+    if ($Temp[$Temp.count-1].Contains('NO DEVICES FOUND')) {Write-Verbose 'No devices found - possible VM'; $Temp=$null}
+    Write-Verbose 'Create an array of objects'
     $Result=@()
     for ($i=2;$i-lt$Temp.count;$i++){
         $Subset1=($Temp[$i].Substring(3,12)).Replace(' ','')
@@ -134,7 +141,9 @@ function Get-IsilonLicenseStatus {
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose 'Gather information on the current license status'
     $Temp = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi license").split("`r")).Split("`n")
+    Write-Verbose 'Create the array of objects'
     $Result=@()
     for ($i=2;$i-lt$Temp.count;$i++){
         $Subset1=($Temp[$i].Substring(0,24)).Replace(' ','')
@@ -159,10 +168,11 @@ function Get-IsilonListCurrentJobs {
     $Counter=0
     do {
         $Counter++
+        Write-Verbose 'Gathering list of current jobs'
         $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job jobs list --format json$a")
         # Can timeout so attempt a 2nd time if incorrect result
     } while (($t[0]-ne'[') -and ($Counter-lt2))
-    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    if ($t[0]-eq'['){Write-Verbose 'Creating an array of objects'; $Result = ConvertFrom-Json -InputObject $t} else {Write-Verbose 'No job information returned'; $Result = $null}
     Return $Result
 }
 
@@ -171,7 +181,9 @@ function Get-IsilonListEvents {
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName)
     "id,start_time,end_time,severity,lnn,message" | Out-File -FilePath $SFTempFile -Force
     # The repeated " `| sed 's/,/./ 6'" allows for 20 commas and everything after the 5th will be replaced with a dot
+    Write-Verbose 'Gather information on Events'
     [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi events list -w --csv `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6' `| sed 's/,/./ 6'").split("`r") | Out-File -FilePath $SFTempFile -Append -NoClobber
+    Write-Verbose 'Create an array of objects'
     $Result = Import-Csv $SFTempFile
     Remove-Item -Path $SFTempFile
     Return $Result
