@@ -172,7 +172,7 @@ function Get-IsilonListCurrentJobs {
         $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job jobs list --format json$a")
         # Can timeout so attempt a 2nd time if incorrect result
     } while (($t[0]-ne'[') -and ($Counter-lt2))
-    if ($t[0]-eq'['){Write-Verbose 'Creating an array of objects'; $Result = ConvertFrom-Json -InputObject $t} else {Write-Verbose 'No job information returned'; $Result = $null}
+    if ($t[0]-eq'['){Write-Verbose 'Creating an array of objects'; $Result = ConvertFrom-Json -InputObject $t} else {Write-Verbose 'No data returned'; $Result = $null}
     Return $Result
 }
 
@@ -197,10 +197,11 @@ function Get-IsilonListJobs {
     $Counter=0
     do {
         $Counter++
+        Write-Verbose 'Gathering list of Jobs'
         $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job jobs list --format json$a")
         # Can timeout so attempt a 2nd time if incorrect result
     } while (($t[0]-ne'[') -and ($Counter-lt2))
-    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    if ($t[0]-eq'['){Write-Verbose 'Creating an array of objects'; $Result = ConvertFrom-Json -InputObject $t} else {Write-Verbose 'No data returned'; $Result = $null}
     Return $Result
 }
 
@@ -212,10 +213,11 @@ function Get-IsilonListJobEvents {
     $Counter=0
     do {
         $Counter++
+        Write-Verbose 'Gathering list of job events'
         $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job events list --format json$a")
         # Can timeout so attempt a 2nd time if incorrect result
     } while (($t[0]-ne'[') -and ($Counter-lt2))
-    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    if ($t[0]-eq'['){Write-Verbose 'Creating an array of objects'; $Result = ConvertFrom-Json -InputObject $t} else {Write-Verbose 'No data returned'; $Result = $null}
     Return $Result
 }
 
@@ -227,10 +229,11 @@ function Get-IsilonListJobPolicies {
     $Counter=0
     do {
         $Counter++
+        Write-Verbose 'Gathering list of job policies'
         $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job policies list --format json$a")
         # Can timeout so attempt a 2nd time if incorrect result
     } while (($t[0]-ne'[') -and ($Counter-lt2))
-    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    if ($t[0]-eq'['){Write-Verbose 'Creating an array of objects'; $Result = ConvertFrom-Json -InputObject $t} else {Write-Verbose 'No data returned'; $Result = $null}
     Return $Result
 }
 
@@ -240,10 +243,11 @@ function Get-IsilonListJobReports {
     $Counter=0
     do {
         $Counter++
+        Write-Verbose 'Gathering list of job reports'
         $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job reports list --format json")
         # Can timeout so attempt a 2nd time if incorrect result
     } while (($t[0]-ne'[') -and ($Counter-lt2))
-    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    if ($t[0]-eq'['){Write-Verbose 'Creating an array of objects'; $Result = ConvertFrom-Json -InputObject $t} else {Write-Verbose 'No data returned'; $Result = $null}
     Return $Result
 }
 
@@ -257,10 +261,11 @@ function Get-IsilonListJobTypes {
     $Counter=0
     do {
         $Counter++
+        Write-Verbose 'Gathering list of job types'
         $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi job types list --format json$a$b")
         # Can timeout so attempt a 2nd time if incorrect result
     } while (($t[0]-ne'[') -and ($Counter-lt2))
-    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    if ($t[0]-eq'['){Write-Verbose 'Creating an array of objects'; $Result = ConvertFrom-Json -InputObject $t} else {Write-Verbose 'No data returned'; $Result = $null}
     Return $Result
 }
 
@@ -272,10 +277,11 @@ function Get-IsilonListNFSShares {
     $Counter=0
     do {
         $Counter++
+        Write-Verbose 'Gathering list of NFS Shares'
         $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi nfs exports list --format json$a")
         # Can timeout so attempt a 2nd time if incorrect result
     } while (($t[0]-ne'[') -and ($Counter-lt2))
-    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    if ($t[0]-eq'['){Write-Verbose 'Creating an array of objects'; $Result = ConvertFrom-Json -InputObject $t} else {Write-Verbose 'No data returned'; $Result = $null}
     Return $Result
 }
 
@@ -287,10 +293,11 @@ function Get-IsilonListSMBShares {
     $Counter=0
     do {
         $Counter++
+        Write-Verbose 'Gathering list of SMB Shares'
         $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi smb share list --format json$a")
         # Can timeout so attempt a 2nd time if incorrect result
     } while (($t[0]-ne'[') -and ($Counter-lt2))
-    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    if ($t[0]-eq'['){Write-Verbose 'Creating an array of objects'; $Result = ConvertFrom-Json -InputObject $t} else {Write-Verbose 'No data returned'; $Result = $null}
     Return $Result
 }
 
@@ -302,10 +309,11 @@ function Get-IsilonListSyncJobs {
     $Counter=0
     do {
         $Counter++
+        Write-Verbose 'Gathering list of Sync Jobs'
         $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi sync jobs list --format json$a")
         # Can timeout so attempt a 2nd time if incorrect result
     } while (($t[0]-ne'[') -and ($Counter-lt2))
-    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    if ($t[0]-eq'['){Write-Verbose 'Creating an array of objects'; $Result = ConvertFrom-Json -InputObject $t} else {Write-Verbose 'No data returned'; $Result = $null}
     Return ($Result)
 }
 
@@ -317,10 +325,11 @@ function Get-IsilonListSyncPolicies {
     $Counter=0
     do {
         $Counter++
+        Write-Verbose 'Gathering list of Sync Policies'
         $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi sync policies list --sort name --format json$a")
         # Can timeout so attempt a 2nd time if incorrect result
     } while (($t[0]-ne'[') -and ($Counter-lt2))
-    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    if ($t[0]-eq'['){Write-Verbose 'Creating an array of objects'; $Result = ConvertFrom-Json -InputObject $t} else {Write-Verbose 'No data returned'; $Result = $null}
     Return ($Result)
 }
 
@@ -332,10 +341,11 @@ function Get-IsilonListSyncReports {
     $Counter=0
     do {
         $Counter++
+        Write-Verbose 'Gathering list of Sync Reports'
         $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi sync reports list --sort start_time --descending --reports-per-policy 1 --format json$a")
         # Can timeout so attempt a 2nd time if incorrect result
     } while (($t[0]-ne'[') -and ($Counter-lt2))
-    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    if ($t[0]-eq'['){Write-Verbose 'Creating an array of objects'; $Result = ConvertFrom-Json -InputObject $t} else {Write-Verbose 'No data returned'; $Result = $null}
     Return $Result
 }
 
@@ -348,10 +358,11 @@ function Get-IsilonListSnapshots {
     $Counter=0
     do {
         $Counter++
+        Write-Verbose 'Gathering list of Snapshots'
         $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi snapshot snapshots list --format json$a")
         # Can timeout so attempt a 2nd time if incorrect result
     } while (($t[0]-ne'[') -and ($Counter-lt2))
-    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    if ($t[0]-eq'['){Write-Verbose 'Creating an array of objects'; $Result = ConvertFrom-Json -InputObject $t} else {Write-Verbose 'No data returned'; $Result = $null}
     Return $Result
 }
 
@@ -363,10 +374,11 @@ function Get-IsilonListQuotas {
     $Counter=0
     do {
         $Counter++
+        Write-Verbose 'Gathering list of Quotas'
         $t = [string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi quota quotas list --format json$a")
         # Can timeout so attempt a 2nd time if incorrect result
     } while (($t[0]-ne'[') -and ($Counter-lt2))
-    if ($t[0]-eq'['){$Result = ConvertFrom-Json -InputObject $t} else {$Result = $null}
+    if ($t[0]-eq'['){Write-Verbose 'Creating an array of objects'; $Result = ConvertFrom-Json -InputObject $t} else {Write-Verbose 'No data returned'; $Result = $null}
     Return $Result
 }
 
@@ -375,7 +387,9 @@ function Get-IsilonNodeTime {
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName)
     "Node,DateTime" | Set-Content $SFTempFile
+    Write-Verbose 'Gathering list of the current Node date/time'
     $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s date").split("`r")).Split("`n") | Convert-Delimiter ": " "," | Add-Content $SFTempFile
+    Write-Verbose 'Creating an array of objects'
     $Result = Import-Csv $SFTempFile
     Remove-Item -Path $SFTempFile
     Return $Result
@@ -385,6 +399,7 @@ function Get-IsilonReadWriteStatus {
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose 'Gathering list of Node Read/Write status'
     $Temp = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi readonly show").split("`r")).Split("`n")
     $Result=@()
     for ($i=2;$i-lt$Temp.count;$i++){
@@ -409,6 +424,7 @@ function Get-IsilonStatus {
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "Running the 'isi status' command"
     $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi status").split("`r")).Split("`n")
     Return $Result
 }
@@ -417,8 +433,10 @@ function Get-IsilonAppliedPatches {
     [CmdletBinding()]
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
           [Parameter(Mandatory=$false)] [string]$PatchID=$null)
+    Write-Verbose 'Gathering a list of the patches applied and/or attempted to be applied'
     $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi pkg info $PatchID").split("`r")).Split("`n")
     if (($Result[0]-like"patch-*")-and ($PatchID.length-eq0)) {
+        Write-Verbose 'Creating a list of objects - only the patch ID lines'
         $Result=(($Result.replace(':','        Installed.')) | Select-String -Pattern 'patch-')
     }
     Return $Result
@@ -428,18 +446,20 @@ function Get-IsilonNodeStatus {
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
-
-    $t = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi status").split("`r")).Split("`n")
+    Write-Verbose 'Gathering the status of the cluster'
+    $t = Get-IsilonStatus -$ClusterName
+#    $t = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi status").split("`r")).Split("`n")
+    Write-Verbose 'Extracting the Node Status table'
     for ($i=0;$i-lt$t.count;$i++){if ($t[$i].Contains('ID |IP Address')) {$NodeStartBlock=$i+2;break}}
     for (;$i-lt$t.count;$i++){if ($t[$i].Contains('Cluster Totals')) {$NodeEndBlock=$i-1;break}}
     $NodeBlock=@{}
+    Write-Verbose 'Text replacement going on'
     for ($i=$NodeStartBlock;$i-lt$NodeEndBlock;$i++) {
         $NodeBlock[($i-$NodeStartBlock)]=($ifsStatus[$i].Replace(' ','').Replace('(NoSSDs)','0,0,0').Replace('(',',').Replace('%)',''))
     }
     $t[($NodeStartBlock-2)].Replace(' ','').Replace('InOut','In|Out|').Replace('al|Used/Size','al|HDD_Used,HDD_Size,HDD_Percent').Replace('Used/Size','SSD_Used,SSD_Size,SSD_Percent') | Convert-Delimiter '\|' "," | Set-Content $SFTempFile
-
     $NodeBlock.Values | Convert-Delimiter '\|' "," | Convert-Delimiter '\/' "," | Add-Content $SFTempFile
-
+    Write-Verbose 'Creating an array of objects'
     $Result = Import-Csv $SFTempFile
     Remove-Item -Path $SFTempFile
     Return $Result
@@ -464,6 +484,7 @@ function Get-IsilonVersion {
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose 'Gather the oneFS version number information'
     $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi version").split("`r")).Split("`n")
     Return $Result
 }
@@ -487,6 +508,7 @@ function New-IsilonQuota {
     if ($AdviseThreshold) {$Command += " --advisory-threshold $AdviseThreshold"}
     if ($SoftThreshold) {$Command += " --soft-threshold $SoftThreshold"}
     if ($SoftGrace) {$Command += " --soft-grace $SoftGrace"}
+    Write-Verbose 'Create a new quota'
     Write-Verbose "SSH command is: $Command"
     $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command $Command).split("`r")).Split("`n")
     Return $Result
@@ -499,6 +521,7 @@ function Remove-IsilonSMBShare {
           [Parameter(Mandatory=$true)]  [string]$Share,
           [Parameter(Mandatory=$false)] [boolean]$Detailed=$false)
     if ($Detailed){$a=" -v"}else{$a=$null}
+    Write-Verbose 'Remove an SMB Share'
     $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi smb shares delete `'$Share`' --force $a").split("`r")).Split("`n")
     Return $Result
 }
@@ -510,6 +533,7 @@ function Remove-IsilonQuota {
           [Parameter(Mandatory=$true)]  [string]$Path,
           [Parameter(Mandatory=$false)] [boolean]$Detailed=$false)
     if ($Detailed){$a=" -v"}else{$a=$null}
+    Write-Verbose 'Remove a quota'
     $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi quota quotas delete `'$Path`' directory$a").split("`r")).Split("`n")
     Return $Result
 }
@@ -519,6 +543,7 @@ function Set-IsilonSyncTimeWithDomain {
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
           [Parameter(Mandatory=$true)]  [string]$Domain)
+    Write-Verbose 'Set all the Node date/time to match the Domain Controller'
     $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s isi_classic auth ads time --sync --domain=$Domain --force").split("`r")).Split("`n")
     Return $Result
 }
@@ -537,6 +562,7 @@ function Set-IsilonQuota {
           [Parameter(Mandatory=$false)] [boolean]$Overhead,
           [Parameter(Mandatory=$false)] [boolean]$Enforced,
           [Parameter(Mandatory=$false)] [boolean]$Detailed)
+    Write-Verbose 'Amend an existing quota'
     if ($SoftThreshold -and !$SoftGrace) {Write-Host 'ERROR: SoftThreshold requires -SoftGrace to be set' -BackgroundColor Black -ForegroundColor Red; return}
     if ($Detailed){$a=" -v"}else{$a=$null}
     $Command = "isi quota quotas modify `'$Path`' directory$a"
@@ -557,6 +583,7 @@ function Disconnect-IsilonCluster {
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose 'Disconnect from the Cluster'
     $Result = ([string](Remove-SshSession -ComputerName $ClusterName).split("`r")).Split("`n")
     Return $Result
 }
