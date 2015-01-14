@@ -1,7 +1,7 @@
 ﻿Import-Module SSH-Sessions
 # Made the temporary file more unique based on the datetime the script is executed
 $Today=Get-Date
-$SFTempFile = "$env:temp\sftempfile-{0:D4}{1:D2}{2:D2}-{3:D2}{4:D2}.csv" -F $Today.Year,$Today.Month,$Today.Day,$Today.Hour,$Today.Minute
+$SFTempFile = "$env:temp\sftempfile-{0:D4}{1:D2}{2:D2}-{3:D2}{4:D2}{5:D2}.csv" -F $Today.Year,$Today.Month,$Today.Day,$Today.Hour,$Today.Minute,$Today.Second
 if (Test-Path ($SFTempFile)){Remove-Item $SFTempFile}
 
 # Things to include:
