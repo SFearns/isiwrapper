@@ -11,7 +11,7 @@ if (Test-Path ($SFTempFile)){Remove-Item $SFTempFile}
 #   isi_hw_status
 #
 
-Write-Host "`n`tIsilon Module v1.0.2"
+Write-Host "`n`tIsilon Module v1.0.3"
 Write-Host ""
 Write-Host "Make a connection to an Isilon Cluster with: " -NoNewline
 Write-Host "Connect-IsilonCluster" -ForegroundColor Yellow
@@ -100,6 +100,79 @@ function Get-IsilonNodeUpTime {
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
     Write-Verbose "This command is still a Work in Progress"
     $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi_for_array -s "uptime"').split("`r")).Split("`n"))
+    $Result = $Temp
+    Return $Result
+}
+
+function Get-IsilonNodeDeviceHealth {
+# This function is a WIP
+# Need to format the output into [PSObject] not just [string[]]
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s 'isi devices | grep -v HEALTHY'").split("`r")).Split("`n"))
+    $Result = $Temp
+    Return $Result
+}
+
+function Get-IsilonAdvancedStatus {
+# This function is a WIP
+# Need to format the output into [PSObject] not just [string[]]
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'echo "status advanced" | isi config').split("`r")).Split("`n"))
+    $Result = $Temp
+    Return $Result
+}
+
+function Get-IsilonBootDriveStatus {
+# This function is a WIP
+# Need to format the output into [PSObject] not just [string[]]
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi_for_array -s "gmirror status"').split("`r")).Split("`n"))
+    $Result = $Temp
+    Return $Result
+}
+
+function Get-IsilonDMILog {
+# This function is a WIP
+# Need to format the output into [PSObject] not just [string[]]
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi_for_array -s "isi_dmilog"').split("`r")).Split("`n"))
+    $Result = $Temp
+    Return $Result
+}
+
+function Get-IsilonOpenSMMaster {
+# This function is a WIP
+# Need to format the output into [PSObject] not just [string[]]
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi_for_array "ps auxww | grep opensm" | grep master').split("`r")).Split("`n"))
+    $Result = $Temp
+    Return $Result
+}
+
+function Get-IsilonUpdateCheck {
+# This function is a WIP
+# Need to format the output into [PSObject] not just [string[]]
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName,
+          [Parameter(Mandatory=$true)] [string]$Path)
+    Write-Verbose "This command is still a Work in Progress"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "echo `"$Path`" | isi update --check-only").split("`r")).Split("`n"))
     $Result = $Temp
     Return $Result
 }
@@ -438,6 +511,15 @@ function Get-IsilonStatus {
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
     Write-Verbose "Running the 'isi status' command"
     $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi status").split("`r")).Split("`n")
+    Return $Result
+}
+
+function Get-IsilonStatusDiskPool {
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "Running the 'isi status' command"
+    $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi status -d").split("`r")).Split("`n")
     Return $Result
 }
 
