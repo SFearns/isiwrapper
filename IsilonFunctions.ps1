@@ -104,6 +104,30 @@ function Get-IsilonNodeUpTime {
     Return $Result
 }
 
+function Get-IsilonNodeIFSversion {
+# This function is a WIP
+# Need to format the output into [PSObject] not just [string[]]
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi_for_array -s uname -r').split("`r")).Split("`n"))
+    $Result = $Temp
+    Return $Result
+}
+
+function Get-IsilonNICs {
+# This function is a WIP
+# Need to format the output into [PSObject] not just [string[]]
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi networks list interfaces').split("`r")).Split("`n"))
+    $Result = $Temp
+    Return $Result
+}
+
 function Get-IsilonNodeDeviceHealth {
 # This function is a WIP
 # Need to format the output into [PSObject] not just [string[]]
@@ -173,6 +197,18 @@ function Get-IsilonUpdateCheck {
           [Parameter(Mandatory=$true)] [string]$Path)
     Write-Verbose "This command is still a Work in Progress"
     $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "echo `"$Path`" | isi update --check-only").split("`r")).Split("`n"))
+    $Result = $Temp
+    Return $Result
+}
+
+function Get-IsilonGatherInfo {
+# This function is a WIP
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
+    Write-Output "The 'Get-IsilonGatherInfo' command can take a long time depending on the size of the log file that is generated"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi_gather_info').split("`r")).Split("`n"))
     $Result = $Temp
     Return $Result
 }
