@@ -92,6 +92,18 @@ function Get-IsilonHardwareStatus {
     Return $Result
 }
 
+function Get-IsilonNodeUpTime {
+# This function is a WIP
+# Need to format the output into [PSObject] not just [string[]]
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi_for_array -s "uptime"').split("`r")).Split("`n"))
+    $Result = $Temp
+    Return $Result
+}
+
 function Get-IsilonDiskUsage {
     [CmdletBinding()]
     [OutputType([String])]
