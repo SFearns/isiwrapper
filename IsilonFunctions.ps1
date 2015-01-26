@@ -218,6 +218,9 @@ function Get-IsilonDiskUsage {
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
     Write-Verbose "Collecting disk usage information"
+#    "node," | Set-Content $SFTempFile
+# When run against all nodes the out for 'df -i' changes compaired to a single node.
+#    ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s df -i").split("`r")).Split("`n").replace(':','').replace('Mounted on','MountedOn').replace('1K-blocks','K_blocks') | Convert-Delimiter " +" "," | Add-Content $SFTempFile
     ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "df -i").split("`r")).Split("`n").replace('Mounted on','MountedOn').replace('1K-blocks','K_blocks') | Convert-Delimiter " +" "," | Set-Content $SFTempFile
     $Result = Import-Csv $SFTempFile
     Remove-Item -Path $SFTempFile
