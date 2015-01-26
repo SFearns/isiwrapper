@@ -77,18 +77,17 @@ function Get-IsilonHardwareStatus {
     $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s isi_hw_status").split("`r")).Split("`n")).Replace(' ','')
     $Result = $Temp
     # Magic goes here to extract all the information and create objects
-<#
-    $Result=@()
-    for ($i=0;$i-lt$Temp.count;$i++){
-        $Temp2=$Temp[$i].Split(':')
-        $Temp2[1] = $Temp2[1].replace('battery','')
-        $Element=New-Object -TypeName PSObject
-        Add-Member -InputObject $Element -MemberType NoteProperty -Name NodeName -Value ($Temp2[0])
-        Add-Member -InputObject $Element -MemberType NoteProperty -Name Battery -Value ($Temp2[1])
-        Add-Member -InputObject $Element -MemberType NoteProperty -Name Status -Value ($Temp2[2])
-        $Result+=$Element
-    }
-#>
+    Return $Result
+}
+
+function Get-IsilonSystemIdentification {
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    "Node,SerialNumber,SystemConfig,FamilyCode,ChassisCode,GenerationCode,Product" | Set-Content $SFTempFile
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s isi_hw_status -THi").split("`r")).Split("`n")).Replace(':',' ') | Convert-Delimiter " +" "," | Add-Content $SFTempFile
+    $Result = Import-Csv $SFTempFile
+    Remove-Item -Path $SFTempFile
     Return $Result
 }
 
