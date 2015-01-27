@@ -11,7 +11,7 @@ if (Test-Path ($SFTempFile)){Remove-Item $SFTempFile}
 #   isi_hw_status
 #
 
-Write-Host "`n`tIsilon Module v1.0.3"
+Write-Host "`n`tIsilon Module v1.0.4"
 Write-Host ""
 Write-Host "Make a connection to an Isilon Cluster with: " -NoNewline
 Write-Host "Connect-IsilonCluster" -ForegroundColor Yellow
@@ -80,6 +80,17 @@ function Get-IsilonHardwareStatus {
     Return $Result
 }
 
+function Get-IsilonClusterHealth {
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    "Node,Health" | Set-Content $SFTempFile
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -Q -s 'isi devices | grep Node'").split("`r")).Split("`n")).Replace(' ','').Replace('[','').Replace(']','').Replace('42;30m','').Replace('0m','').Replace('43;3','').Replace('41;37m','') | Add-Content $SFTempFile
+    $Result = Import-Csv $SFTempFile
+    Remove-Item -Path $SFTempFile
+    Return $Result
+}
+
 function Get-IsilonSystemIdentification {
     [CmdletBinding()]
     [OutputType([String])]
@@ -91,7 +102,7 @@ function Get-IsilonSystemIdentification {
     Return $Result
 }
 
-function Get-IsilonNodeUpTime {
+function Get-IsilonUptime {
 # This function is a WIP
 # Need to format the output into [PSObject] not just [string[]]
     [CmdletBinding()]
@@ -103,39 +114,76 @@ function Get-IsilonNodeUpTime {
     Return $Result
 }
 
+function Restart-IsilonNode {
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName,
+          [Parameter(Mandatory=$true)] [int]$Node)
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -n $Node 'shutdown -r now'").split("`r")).Split("`n"))
+    $Result = $Temp
+    Return $Result
+}
+
 function Get-IsilonNodeIFSversion {
-# This function is a WIP
-# Need to format the output into [PSObject] not just [string[]]
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
-    Write-Verbose "This command is still a Work in Progress"
-    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi_for_array -s uname -r').split("`r")).Split("`n"))
-    $Result = $Temp
+    "Node,Version" | Set-Content $SFTempFile
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi_for_array -s uname -r').split("`r")).Split("`n")).Replace(' v','').Replace(':',' ') | Convert-Delimiter " +" "," | Add-Content $SFTempFile
+    $Result = Import-Csv $SFTempFile
+    Remove-Item -Path $SFTempFile
     Return $Result
 }
 
 function Get-IsilonNICs {
-# This function is a WIP
-# Need to format the output into [PSObject] not just [string[]]
+# This function is not yet finished.  At the moment it just gets
+# the basic information.  Needs to be enhanced to include verbose
+# information which contains more information.
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
-    Write-Verbose "This command is still a Work in Progress"
-    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi networks list interfaces').split("`r")).Split("`n"))
-    $Result = $Temp
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi networks list interfaces').Replace('...','').Replace(',',';').Replace('-','').Replace('no carrier','no_carrier').Replace(':','_').split("`r")).Split("`n"))  | Convert-Delimiter " +" "," | Add-Content $SFTempFile
+    $Result = Import-Csv $SFTempFile
+    Remove-Item -Path $SFTempFile
     Return $Result
 }
 
-function Get-IsilonNodeDeviceHealth {
-# This function is a WIP
-# Need to format the output into [PSObject] not just [string[]]
+function Get-IsilonSubnets {
+# This function is not yet finished.  At the moment it just gets
+# the basic information.  Needs to be enhanced to include verbose
+# information which contains more information.
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
-    Write-Verbose "This command is still a Work in Progress"
-    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s 'isi devices | grep -v HEALTHY'").split("`r")).Split("`n"))
-    $Result = $Temp
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi networks list subnets").Replace('...','').Replace('-','').Replace('Gateway:Prio','GatewayPrio').Replace('SC Service','SCService').split("`r")).Split("`n")) | Convert-Delimiter " +" "," | Add-Content $SFTempFile
+    $Result = Import-Csv $SFTempFile
+    Remove-Item -Path $SFTempFile
+    Return $Result
+}
+
+function Get-IsilonPools {
+# This function is not yet finished.  At the moment it just gets
+# the basic information.  Needs to be enhanced to include verbose
+# information which contains more information.
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi networks list pools").Replace('-','').Replace('SmartConnect Zone','SmartConnectZone').Replace('...','').split("`r")).Split("`n")) | Convert-Delimiter " +" "," | Add-Content $SFTempFile
+    $Result = Import-Csv $SFTempFile
+    Remove-Item -Path $SFTempFile
+    Return $Result
+}
+
+function Get-IsilonRules {
+# This function is not yet finished.  At the moment it just gets
+# the basic information.  Needs to be enhanced to include verbose
+# information which contains more information.
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi networks list rules").Replace('-','').Replace('SmartConnect Zone','SmartConnectZone').Replace('...','').split("`r")).Split("`n")) | Convert-Delimiter " +" "," | Add-Content $SFTempFile
+    $Result = Import-Csv $SFTempFile
+    Remove-Item -Path $SFTempFile
     Return $Result
 }
 
