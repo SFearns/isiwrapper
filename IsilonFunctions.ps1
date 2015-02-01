@@ -136,28 +136,55 @@ function Get-IsilonNodeIFSversion {
 }
 
 function Get-IsilonNICs {
-# This function is not yet finished.  At the moment it just gets
-# the basic information.  Needs to be enhanced to include verbose
-# information which contains more information.
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
-    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi networks list interfaces -w').Replace('-','').Replace('no carrier','no_carrier').split("`r")).Split("`n"))  | Convert-Delimiter " +" "`t" | Add-Content $SFTempFile
-    $Result = Import-Csv $SFTempFile -Delimiter "`t"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi networks list interfaces -w').Replace('-','').Replace(',','/').Replace('no carrier','no_carrier').split("`r")).Split("`n"))  | Convert-Delimiter " +" "," | Add-Content $SFTempFile
+    $Result = Import-Csv $SFTempFile
     Remove-Item -Path $SFTempFile
     Return $Result
 }
 
 function Get-IsilonSubnets {
-# This function is not yet finished.  At the moment it just gets
-# the basic information.  Needs to be enhanced to include verbose
-# information which contains more information.
     [CmdletBinding()]
-    [OutputType([String])]
+    [OutputType([PSObject])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
-    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi networks list subnets").Replace('-','').Replace('Gateway:Prio','GatewayPrio').Replace('SC Service','SCService').split("`r")).Split("`n")) | Convert-Delimiter " +" "," | Add-Content $SFTempFile
-    $Result = Import-Csv $SFTempFile
-    Remove-Item -Path $SFTempFile
+    $t = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi networks list subnets").Replace('-','').Replace('Gateway:Prio','GatewayPrio').Replace('SC Service','SCService').split("`r")).Split("`n")) | Convert-Delimiter " +" "," | Set-Content $SFTempFile
+    $t = Import-Csv $SFTempFile
+    Write-Verbose 'Create an array of objects'
+    $Result=@()
+    for ($i=0;$i -lt $t.Count;$i++) {
+        $t2=(([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi networks list subnets -v -n $($t[$i].Name)").split("`r")).Split("`n"))
+        if ($t2) {
+            $Element=New-Object -TypeName PSObject
+            Add-Member -InputObject $Element -MemberType NoteProperty -Name Name -Value ($t[$i].Name)
+            for ($i2=0;$i2 -lt $t2.Count;$i2++) {
+                Switch ($t2[$i2].Trim()) 
+                {
+                    {$PSItem.Contains('Address Family: ')} {Add-Member -InputObject $Element -MemberType NoteProperty -Name AddressFamily -Value ($t2[$i2].Replace('Address Family: ','').Trim()); break}
+                    {$PSItem.Contains('Netmask: ')} {Add-Member -InputObject $Element -MemberType NoteProperty -Name Netmask -Value ($t2[$i2].Replace('Netmask: ','').Trim()); break}
+                    {$PSItem.Contains('Subnet: ')} {Add-Member -InputObject $Element -MemberType NoteProperty -Name Subnet -Value ($t2[$i2].Replace('Subnet: ','').Trim()); break}
+                    {$PSItem.Contains('Gateway ')} {Add-Member -InputObject $Element -MemberType NoteProperty -Name Gateway -Value ($t2[$i2].Replace('Gateway ','').Trim()); break}
+                    {$PSItem.Contains('MTU: ')} {Add-Member -InputObject $Element -MemberType NoteProperty -Name MTU -Value ($t2[$i2].Replace('MTU: ','').Trim()); break}
+                    {$PSItem.Contains('SC Service Address: ')} {Add-Member -InputObject $Element -MemberType NoteProperty -Name SCServiceAddress -Value ($t2[$i2].Replace('SC Service Address: ','').Trim()); break}
+                    {$PSItem.Contains('VLAN Tagging: ')} {Add-Member -InputObject $Element -MemberType NoteProperty -Name VLANTagging -Value ($t2[$i2].Replace('VLAN Tagging: ','').Trim()); break}
+                    {$PSItem.Contains('VLAN ID: ')} {Add-Member -InputObject $Element -MemberType NoteProperty -Name VLANID -Value ($t2[$i2].Replace('VLAN ID: ','').Trim()); break}
+                    {$PSItem.Contains('DSR Addresses: ')} {Add-Member -InputObject $Element -MemberType NoteProperty -Name DSRAddresses -Value ($t2[$i2].Replace('DSR Addresses: ','').Trim()); break}
+                    {$PSItem.Contains('Pools: ')} {
+                        $Count = [int]$t2[$i2].Replace('Pools: ','').Trim()
+                        if ($Count -gt 0) {
+                            $SubElement=@()
+                            for ($i2++;$i2 -lt $t2.Count;$i2++) {
+                                $SubElement+=$t2[$i2].Trim()
+                            }
+                            Add-Member -InputObject $Element -MemberType NoteProperty -Name Pools -Value $SubElement
+                        }
+                    }
+                }
+            }
+            $Result+=$Element
+        }
+    }
     Return $Result
 }
 
