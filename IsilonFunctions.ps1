@@ -142,8 +142,8 @@ function Get-IsilonNICs {
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
-    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi networks list interfaces').Replace(',',';').Replace('-','').Replace('no carrier','no_carrier').Replace(':','_').split("`r")).Split("`n"))  | Convert-Delimiter " +" "," | Add-Content $SFTempFile
-    $Result = Import-Csv $SFTempFile
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi networks list interfaces -w').Replace('-','').Replace('no carrier','no_carrier').split("`r")).Split("`n"))  | Convert-Delimiter " +" "`t" | Add-Content $SFTempFile
+    $Result = Import-Csv $SFTempFile -Delimiter "`t"
     Remove-Item -Path $SFTempFile
     Return $Result
 }
