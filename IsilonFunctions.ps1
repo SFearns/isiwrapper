@@ -151,6 +151,7 @@ function Get-IsilonSubnets {
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
     $t = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi networks list subnets").Replace('-','').Replace('Gateway:Prio','GatewayPrio').Replace('SC Service','SCService').split("`r")).Split("`n")) | Convert-Delimiter " +" "," | Set-Content $SFTempFile
     $t = Import-Csv $SFTempFile
+    Remove-Item -Path $SFTempFile
     Write-Verbose 'Create an array of objects'
     $Result=@()
     for ($i=0;$i -lt $t.Count;$i++) {
@@ -174,9 +175,7 @@ function Get-IsilonSubnets {
                         $Count = [int]$t2[$i2].Replace('Pools: ','').Trim()
                         if ($Count -gt 0) {
                             $SubElement=@()
-                            for ($i2++;$i2 -lt $t2.Count;$i2++) {
-                                $SubElement+=$t2[$i2].Trim()
-                            }
+                            for ($i2++;$i2 -lt $t2.Count;$i2++) {$SubElement+=$t2[$i2].Trim()}
                             Add-Member -InputObject $Element -MemberType NoteProperty -Name Pools -Value $SubElement
                         }
                     }
@@ -209,7 +208,7 @@ function Get-IsilonRules {
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
-    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi networks list rules").Replace('-','').Replace('SmartConnect Zone','SmartConnectZone').split("`r")).Split("`n")) | Convert-Delimiter " +" "," | Add-Content $SFTempFile
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi networks list rules").Replace('-','').Replace('SmartConnect Zone','SmartConnectZone').split("`r")).Split("`n")) | Convert-Delimiter " +" "," | Set-Content $SFTempFile
     $Result = Import-Csv $SFTempFile
     Remove-Item -Path $SFTempFile
     Return $Result
