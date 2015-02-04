@@ -292,10 +292,10 @@ function Get-IsilonDiskUsage {
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
     Write-Verbose "Collecting disk usage information"
-#    "node," | Set-Content $SFTempFile
+    "node,Filesystem,K_blocks,Used,Avail,Capacity,iused,ifree,%iused,MountedOn" | Set-Content $SFTempFile
 # When run against all nodes the out for 'df -i' changes compaired to a single node.
-#    ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s df -i").split("`r")).Split("`n").replace(':','').replace('Mounted on','MountedOn').replace('1K-blocks','K_blocks') | Convert-Delimiter " +" "," | Add-Content $SFTempFile
-    ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "df -i").split("`r")).Split("`n").replace('Mounted on','MountedOn').replace('1K-blocks','K_blocks') | Convert-Delimiter " +" "," | Set-Content $SFTempFile
+    ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s df -ik | grep -v 1024-blocks").split("`r")).Split("`n").replace(':','') | Convert-Delimiter " +" "," | Add-Content $SFTempFile
+#    ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "df -i").split("`r")).Split("`n").replace('Mounted on','MountedOn').replace('1K-blocks','K_blocks') | Convert-Delimiter " +" "," | Set-Content $SFTempFile
     $Result = Import-Csv $SFTempFile
     Remove-Item -Path $SFTempFile
     Return $Result
@@ -718,6 +718,16 @@ function New-IsilonQuota {
     Write-Verbose 'Create a new quota'
     Write-Verbose "SSH command is: $Command"
     $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command $Command).split("`r")).Split("`n")
+    Return $Result
+}
+
+function Remove-IsilonNode {
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
+          [Parameter(Mandatory=$true)]  [string]$Node)
+    Write-Verbose 'Removing Isilon Node'
+    $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "echo yes | isi devices -a smartfail -d $Node").split("`r")).Split("`n")
     Return $Result
 }
 
