@@ -11,7 +11,7 @@ if (Test-Path ($SFTempFile)){Remove-Item $SFTempFile}
 #   isi_hw_status
 #
 
-Write-Host "`n`tIsilon Module v1.0.4"
+Write-Host "`n`tIsilon Module v1.0.5"
 Write-Host ""
 Write-Host "Make a connection to an Isilon Cluster with: " -NoNewline
 Write-Host "Connect-IsilonCluster" -ForegroundColor Yellow
@@ -19,6 +19,18 @@ Write-Host "Disconnect from an Isilon Cluster with: " -NoNewline
 Write-Host "Connect-IsilonCluster" -ForegroundColor Yellow
 Write-Host "List all available commands with: " -NoNewline
 Write-Host "Get-IsilonCommands" -ForegroundColor Yellow
+
+function Get-IsilonModuleVersion {
+    [OutputType([String])]
+    Param ()
+    Write-Verbose "`n`tIsilon Module v1.0.5"
+    Write-Verbose ""
+    Write-Verbose "Make a connection to an Isilon Cluster with: Connect-IsilonCluster"
+    Write-Verbose "Disconnect from an Isilon Cluster with: Connect-IsilonCluster"
+    Write-Verbose "List all available commands with: Get-IsilonCommands"
+
+    Return "1.0.4"
+}
 
 function Get-IsilonCommands {
     [CmdletBinding()]
@@ -75,6 +87,90 @@ function Get-IsilonHardwareStatus {
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
     Write-Verbose "This command is still a Work in Progress"
     $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s isi_hw_status").split("`r")).Split("`n")).Replace(' ','')
+    $Result = $Temp
+    # Magic goes here to extract all the information and create objects
+    Return $Result
+}
+
+function Get-IsilonDMIDecodeAll {
+# This function is a WIP
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s '/usr/local/sbin/dmidecode'").split("`r")).Split("`n"))
+    $Result = $Temp
+    # Magic goes here to extract all the information and create objects
+    Return $Result
+}
+
+function Get-IsilonDMIDecodeT0 {
+# This function is a WIP
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s '/usr/local/sbin/dmidecode -t0'").split("`r")).Split("`n"))
+    $Result = $Temp
+    # Magic goes here to extract all the information and create objects
+    Return $Result
+}
+
+function Get-IsilonDMIDecodeT1 {
+# This function is a WIP
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s '/usr/local/sbin/dmidecode -t1'").split("`r")).Split("`n"))
+    $Result = $Temp
+    # Magic goes here to extract all the information and create objects
+    Return $Result
+}
+
+function Get-IsilonDMIDecodeT2 {
+# This function is a WIP
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s '/usr/local/sbin/dmidecode -t2'").split("`r")).Split("`n"))
+    $Result = $Temp
+    # Magic goes here to extract all the information and create objects
+    Return $Result
+}
+
+function Get-IsilonDMIDecodeT4 {
+# This function is a WIP
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s '/usr/local/sbin/dmidecode -t4'").split("`r")).Split("`n"))
+    $Result = $Temp
+    # Magic goes here to extract all the information and create objects
+    Return $Result
+}
+
+function Get-IsilonDMIDecodeT17 {
+# This function is a WIP
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s '/usr/local/sbin/dmidecode -t17'").split("`r")).Split("`n"))
+    $Result = $Temp
+    # Magic goes here to extract all the information and create objects
+    Return $Result
+}
+
+function Get-IsilonBootDriveInfo {
+# This function is a WIP
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    Write-Verbose "This command is still a Work in Progress"
+    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi_for_array -s '/usr/bin/isi_radish -q `'Internal J3`' `'Internal J4`''").split("`r")).Split("`n"))
     $Result = $Temp
     # Magic goes here to extract all the information and create objects
     Return $Result
@@ -137,11 +233,29 @@ function Get-IsilonNodeIFSversion {
 
 function Get-IsilonNICs {
     [CmdletBinding()]
-    [OutputType([String])]
+    [OutputType([PSObject])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
-    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi networks list interfaces -w').Replace('-','').Replace(',','/').Replace('no carrier','no_carrier').split("`r")).Split("`n"))  | Convert-Delimiter " +" "," | Add-Content $SFTempFile
-    $Result = Import-Csv $SFTempFile
-    Remove-Item -Path $SFTempFile
+    Return (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi networks list interfaces -w').Replace('-','').Replace(',','/').Replace('no carrier','no_carrier').split("`r")).Split("`n")) | Convert-Delimiter " +" "," | ConvertFrom-Csv
+}
+
+function Get-IsilonDedupeStats {
+    [CmdletBinding()]
+    [OutputType([PSObject])]
+    Param([Parameter(Mandatory=$true)] [string]$ClusterName)
+    $t = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi dedupe stats").split("`r")).Split("`n"))
+    Write-Verbose 'Create an array of objects'
+    $Result=New-Object -TypeName PSObject
+    for ($i=0;$i -lt $t.Count;$i++) {
+        Switch ($t[$i].Trim()) 
+        {
+            {$PSItem.Contains('Cluster Physical Size: ')} {Add-Member -InputObject $Result -MemberType NoteProperty -Name ClusterPhysicalSize -Value ($t[$i].Replace('Cluster Physical Size: ','').Trim()); break}
+            {$PSItem.Contains('Cluster Used Size: ')} {Add-Member -InputObject $Result -MemberType NoteProperty -Name ClusterUsedSize -Value ($t[$i].Replace('Cluster Used Size: ','').Trim()); break}
+            {$PSItem.Contains('Logical Size Deduplicated: ')} {Add-Member -InputObject $Result -MemberType NoteProperty -Name LogicalSizeDeduplicated -Value ($t[$i].Replace('Logical Size Deduplicated: ','').Trim()); break}
+            {$PSItem.Contains('Logical Saving: ')} {Add-Member -InputObject $Result -MemberType NoteProperty -Name LogicalSaving -Value ($t[$i].Replace('Logical Saving: ','').Trim()); break}
+            {$PSItem.Contains('Estimated Size Deduplicated: ')} {Add-Member -InputObject $Result -MemberType NoteProperty -Name EstimatedSizeDeduplicated -Value ($t[$i].Replace('Estimated Size Deduplicated: ','').Trim()); break}
+            {$PSItem.Contains('Estimated Physical Saving: ')} {Add-Member -InputObject $Result -MemberType NoteProperty -Name EstimatedPhysicalSaving -Value ($t[$i].Replace('Estimated Physical Saving: ','').Trim()); break}
+        }
+    }
     Return $Result
 }
 
@@ -188,16 +302,10 @@ function Get-IsilonSubnets {
 }
 
 function Get-IsilonPools {
-# This function is not yet finished.  At the moment it just gets
-# the basic information.  Needs to be enhanced to include verbose
-# information which contains more information.
     [CmdletBinding()]
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
     $Result = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi networks list pools -v").split("`r")).Split("`n"))
-#    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command "isi networks list pools").Replace('-','').Replace('SmartConnect Zone','SmartConnectZone').split("`r")).Split("`n")) | Convert-Delimiter " +" "," | Add-Content $SFTempFile
-#    $Result = Import-Csv $SFTempFile
-#    Remove-Item -Path $SFTempFile
     Return $Result
 }
 
@@ -233,8 +341,8 @@ function Get-IsilonBootDriveStatus {
     [OutputType([String])]
     Param([Parameter(Mandatory=$true)] [string]$ClusterName)
     Write-Verbose "This command is still a Work in Progress"
-    $Temp = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi_for_array -s "gmirror status"').split("`r")).Split("`n"))
-    $Result = $Temp
+    $Result = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi_for_array -s "gmirror status | grep -v Components"').split("`r")).Split("`n"))
+#    $Result = (([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command 'isi_for_array -s "gmirror status | grep -v Components"').split("`r")).Split("`n")) | Convert-Delimiter " +" "," | ConvertFrom-Csv -Header 'Node','Name','Status','Components'
     Return $Result
 }
 
