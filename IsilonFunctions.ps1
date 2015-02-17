@@ -829,6 +829,20 @@ function New-IsilonQuota {
     Return $Result
 }
 
+function New-IsilonQuotaUserAccounting {
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param([Parameter(Mandatory=$true)]  [string]$ClusterName,
+          [Parameter(Mandatory=$true)]  [string]$Path,
+          [Parameter(Mandatory=$false)] [boolean]$Detailed=$false)
+    if ($Detailed){$a=" -v"}else{$a=$null}
+    $Command = "isi quota quotas create `'$Path`' default-user$a"
+    Write-Verbose 'Create a new user accounting quota'
+    Write-Verbose "SSH command is: $Command"
+    $Result = ([string](Invoke-SshCommand -ComputerName $ClusterName -Quiet -Command $Command).split("`r")).Split("`n")
+    Return $Result
+}
+
 function Remove-IsilonNode {
     [CmdletBinding()]
     [OutputType([String])]
